@@ -3,3 +3,5 @@
 ## Task 1: Code the Excel task pane add-in solution
 
 ### Create a table
+
+<script>
