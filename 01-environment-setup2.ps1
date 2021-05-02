@@ -675,4 +675,5 @@ Update-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
        
-[System.Windows.MessageBox]::Show('That script you ran?  It is done.')       
+[System.Windows.MessageBox]::Show('That script you ran?  It is done.')
+msg * "That script you ran?  It is done."
