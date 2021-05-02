@@ -60,7 +60,7 @@ if($IsCloudLabs){
                 Select-AzSubscription -SubscriptionName $selectedSubName
         }
 
-        $resourceGroupName = Read-Host "Enter the resource group name";
+        $resourceGroupName = "Synapse-Analytics-GA"
         
         $userName = ((az ad signed-in-user show) | ConvertFrom-JSON).UserPrincipalName
         
