@@ -675,5 +675,4 @@ Update-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
        
-[System.Windows.MessageBox]::Show('That script you ran?  It is done.')
-msg * "That script you ran?  It is done."
+New-Item -Path C:\Users\Admin\Desktop -Name "ScriptFinished.txt" -ItemType "file" -Value "That script you wanted me to run? It finished..."
