@@ -437,5 +437,5 @@ $app = (az ad sp create-for-rbac -n "Azure Synapse Analytics GA Labs $($uniqueId
 
 $secretValue = ConvertTo-SecureString $app.password -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVaultName -Name "ASA-GA-LABS" -SecretValue $secretValue
-[System.Windows.MessageBox]::Show('That script you ran?  It is done.')
-msg * "That script you ran?  It is done."
+
+New-Item -Path C:\Users\Admin\Desktop -Name "ScriptFinished.txt" -ItemType "file" -Value "That script you wanted me to run? It finished..."
