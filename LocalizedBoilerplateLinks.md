@@ -97,3 +97,9 @@
 | German | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/ESM_RedirectClipboardHint.md |
 | Spanish | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/ESM_RedirectClipboardHint.md |
 
+**Congratulations, you have completed this module, click next to proceed to the next lab**
+```
+# おめでとう！
+
+これで、この演習は正常に完了しました。 **次**をクリックして次の**ラボ**に進みます。
+```
