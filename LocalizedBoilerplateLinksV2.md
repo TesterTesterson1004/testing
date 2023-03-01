@@ -12,16 +12,23 @@
 | ESM_RedirectClipboardHint | link |
 | CSSHint | link |
 
+---
 **"...Congratulations, you have completed this module, click next to proceed to the next lab..."**
 ```
 # おめでとう！
 
 これで、この演習は正常に完了しました。 **次**をクリックして次の**ラボ**に進みます。
 ```
-
+---
 **"...Congratulations, you have successfully completed this module, to mark the lab as complete click end..."**
 ```
 # おめでとう！
 
 このモジュールを正常に完了しました。ラボを完了としてマークするには、[**終了**]をクリックします。
+```
+---
+**Replacement to localize azure portal URL**
+```
+[Azure portal](https://portal.azure.com)
+Azure portal +++https://portal.azure.com/?l=ja.ja-jp+++
 ```
