@@ -1,3 +1,17 @@
+**Jump to Language:**<br>
+[**Japanese**](#japanese)
+
+[**Korean**](#korean)
+
+[**Chinese**](#chinese)
+
+[**French**](#french)
+
+[**German**](#german)
+
+[**Spanish**](#spanish)
+
+---
 # Japanese
 
 | Boilerplate | Translation |
