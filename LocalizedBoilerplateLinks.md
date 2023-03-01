@@ -64,3 +64,36 @@
 | German | not translated yet |
 | Spanish | not translated yet |
 
+**MultiLineCodeHint**
+| Language | Translation |
+|---|---|
+| English | https://raw.githubusercontent.com/LODSContent/All-MOC/master/MOC/MultiLineCodeHint.md |
+| Japanese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/MultiLineCodeHint.md |
+| Korean | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/MultiLineCodeHint.md |
+| Simplified Chinese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/zh/MultiLineCodeHint.md |
+| French | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/MultiLineCodeHint.md |
+| German | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/MultiLineCodeHint.md |
+| Spanish | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/MultiLineCodeHint.md |
+
+**Azure Pass**
+| Language | Translation |
+|---|---|
+| English | https://raw.githubusercontent.com/LODSContent/ESI/master/ESI-Azure-Pass-How-To |
+| Japanese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/Azure_Pass_HowTo-jpn |
+| Korean | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/Azure_Pass_HowTo-kor |
+| Simplified Chinese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/zh/Azure_Pass_HowTo-zho-HK |
+| French | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/Azure%20Pass%20How%20To |
+| German | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/Azure%20Pass%20How%20To |
+| Spanish | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/Azure%20Pass%20How%20To |
+
+**ESM_RedirectClipboardHint**
+| Language | Translation |
+|---|---|
+| English | ? |
+| Japanese | not translated yet |
+| Korean | not translated yet |
+| Simplified Chinese | not translated yet |
+| French | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/ESM_RedirectClipboardHint.md |
+| German | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/ESM_RedirectClipboardHint.md |
+| Spanish | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/ESM_RedirectClipboardHint.md |
+
