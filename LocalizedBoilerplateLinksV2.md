@@ -2,14 +2,14 @@
 
 | Boilerplate | Translation |
 |---|---|
-| ESI Disclaimer | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/Disclaimer-jpn |
-| ACP Disclaimer | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/ACP_Disclaimer.md |
-| CloudShellPrepBash | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/cloudshell%20prep%20JA%20(bash).md |
-| CloudShellPrepPowershell | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/cloudshell%20prep%20JA%20(powershell).md |
-| CloudSliceResourceGroup | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CloudsliceResourceGroupJA.md |
-| CSSHint | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CSS-Info |
-| MultiLineCodeHint | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/MultiLineCodeHint.md |
-| Azure Pass | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/Azure_Pass_HowTo-jpn |
+| ESI Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/Disclaimer-jpn |
+| ACP Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/ACP_Disclaimer.md |
+| CloudShellPrepBash | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/cloudshell%20prep%20JA%20(bash).md |
+| CloudShellPrepPowershell | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/cloudshell%20prep%20JA%20(powershell).md |
+| CloudSliceResourceGroup | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CloudsliceResourceGroupJA.md |
+| CSSHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CSS-Info |
+| MultiLineCodeHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/MultiLineCodeHint.md |
+| Azure Pass | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/Azure_Pass_HowTo-jpn |
 | ESM_RedirectClipboardHint | not translated yet |
 
 ---
@@ -53,14 +53,14 @@ Azure portal +++https://portal.azure.com/?l=ja.ja-jp+++
 
 | Boilerplate | Translation |
 |---|---|
-| ESI Disclaimer | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/Disclaimer-kor |
-| ACP Disclaimer | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/ACP_Disclaimer.md |
-| CloudShellPrepBash | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/prepare%20cloudshell%20(bash).md |
-| CloudShellPrepPowershell | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/prepare%20cloudshell%20(powershell).md |
-| CloudSliceResourceGroup | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/CloudsliceResourceGroupKO.md |
-| CSSHint | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/KO/CSS-Info |
-| MultiLineCodeHint | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/MultiLineCodeHint.md |
-| Azure Pass | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/Azure_Pass_HowTo-kor |
+| ESI Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/Disclaimer-kor |
+| ACP Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/ACP_Disclaimer.md |
+| CloudShellPrepBash | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/prepare%20cloudshell%20(bash).md |
+| CloudShellPrepPowershell | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/prepare%20cloudshell%20(powershell).md |
+| CloudSliceResourceGroup | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/CloudsliceResourceGroupKO.md |
+| CSSHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/KO/CSS-Info |
+| MultiLineCodeHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/MultiLineCodeHint.md |
+| Azure Pass | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/Azure_Pass_HowTo-kor |
 | ESM_RedirectClipboardHint | not translated yet |
 
 ---
