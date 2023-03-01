@@ -10,7 +10,7 @@
 | CSSHint | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CSS-Info |
 | MultiLineCodeHint | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/MultiLineCodeHint.md |
 | Azure Pass | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/Azure_Pass_HowTo-jpn |
-| ESM_RedirectClipboardHint | link |
+| ESM_RedirectClipboardHint | not translated yet |
 
 ---
 **"...Congratulations, you have completed this module, click next to proceed to the next lab..."**
