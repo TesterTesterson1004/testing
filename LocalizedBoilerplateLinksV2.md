@@ -42,7 +42,7 @@ Azure portal +++https://portal.azure.com/?l=ja.ja-jp+++
 | Incorrect Answer Feedback: | エラーが発生しました。もう一度お試しください。 |
 
 ---
-**DownloadFiles Variations - 'Download To F:' version (adjust <drive>: letter as neccessary)**
+**DownloadFiles Variations - 'Download To F:' version (adjust drive: letter as neccessary)**
 | Field | Translation |
 |---|---|
 | Custom Evaluation Button Text: | ラボファイルをF：\ドライブにダウンロード |
@@ -93,7 +93,7 @@ Azure portal +++https://portal.azure.com/?l=ko.ko-kr+++
 | Incorrect Answer Feedback: | 랩 파일을 다운로드하지 못했습니다. 나중에 다시 시도하세요. |
 
 ---
-**DownloadFiles Variations - 'Download To F:' version (adjust <drive>: letter as neccessary)**
+**DownloadFiles Variations - 'Download To F:' version (adjust drive: letter as neccessary)**
 | Field | Translation |
 |---|---|
 | Custom Evaluation Button Text: | F : \ 드라이브에 랩 파일 다운로드 |
