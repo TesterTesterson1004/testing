@@ -41,3 +41,26 @@
 | French | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/prepare%20cloudshell%20(powershell).md |
 | German | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/prepare%20cloudshell%20(powershell).md |
 | Spanish | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/prepare%20cloudshell%20(powershell).md |
+
+**CloudSliceResourceGroup**
+| Language | Translation |
+|---|---|
+| English | https://raw.githubusercontent.com/LODSContent/All-MOC/master/MOC/CloudSliceResourceGroup |
+| Japanese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CloudsliceResourceGroupJA.md |
+| Korean | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ko/CloudsliceResourceGroupKO.md |
+| Simplified Chinese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/zh/CloudsliceResourceGroupZH.md |
+| French | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/CloudsliceResourceGroupFR.md |
+| German | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/CloudsliceResourceGroupDE.md |
+| Spanish | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/CloudsliceResourceGroupES.md |
+
+**CSSHint**
+| Language | Translation |
+|---|---|
+| English | https://raw.githubusercontent.com/LODSContent/All-MOC/master/MOC/CSS-Info |
+| Japanese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/JA/CSS-Info |
+| Korean | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/KO/CSS-Info |
+| Simplified Chinese | https://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ZH/CSS-Info |
+| French | not translated yet |
+| German | not translated yet |
+| Spanish | not translated yet |
+
