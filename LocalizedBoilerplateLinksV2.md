@@ -272,3 +272,56 @@ Azure portal +++https://portal.azure.com/?l=de.de-de+++
 | Correct Answer Feedback: | ERFOLG! Die Lab-Dateien wurden auf das Laufwerk F:\ heruntergeladen. |
 | Incorrect Answer Feedback: | Fehler beim Herunterladen der Lab-Dateien. Versuchen Sie es erneut. |
 
+
+	---
+# Spanish
+
+| Boilerplate | Translation |
+|---|---|
+| ESI Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/Disclaimer |
+| ACP Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/ACP_Disclaimer.md |
+| CloudShellPrepBash | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/prepare%20cloudshell%20(bash).md |
+| CloudShellPrepPowershell | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/prepare%20cloudshell%20(powershell).md |
+| CloudSliceResourceGroup | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/CloudsliceResourceGroupES.md |
+| CSSHint | not translated yet |
+| MultiLineCodeHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/MultiLineCodeHint.md |
+| Azure Pass | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/Azure%20Pass%20How%20To |
+| ESM_RedirectClipboardHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/ES/ESM_RedirectClipboardHint.md |
+
+---
+**"...Congratulations, you have completed this module, click next to proceed to the next lab..."**
+```
+# ¡Enhorabuena!
+
+Ha completado correctamente este ejercicio. Haga clic en **Siguiente** para ir al siguiente laboratorio.
+```
+---
+**"...Congratulations, you have successfully completed this module, to mark the lab as complete click end..."**
+```
+# ¡Enhorabuena!
+		
+Ha completado correctamente este laboratorio. Para marcarlo como **Completado**, haga clic en **Finalizar**.
+```
+---
+**Replacement to localize azure portal URL**
+```
+[Azure portal](https://portal.azure.com)
+Azure portal +++https://portal.azure.com/?l=es.es-es+++
+```
+
+---
+**DownloadFiles Variations - 'Download To Desktop' version**
+| Field | Translation |
+|---|---|
+| Custom Evaluation Button Text: | Descargue los archivos para laboratorio en el escritorio |
+| Correct Answer Feedback: | CORRECTO Los archivos para laboratorio se han descargado en el escritorio. |
+| Incorrect Answer Feedback: | Error al descargar los archivos para laboratorio. Vuelva a intentarlo. |
+
+---
+**DownloadFiles Variations - 'Download To F:' version (adjust drive: letter as neccessary)**
+| Field | Translation |
+|---|---|
+| Custom Evaluation Button Text: | Descargue los archivos para laboratorio en F:\ Unidad |
+| Correct Answer Feedback: | CORRECTO Los archivos para laboratorio se han descargado en F:\ Unidad. |
+| Incorrect Answer Feedback: | Error al descargar los archivos para laboratorio. Vuelva a intentarlo. |
+
