@@ -166,3 +166,55 @@ Azure portal +++https://portal.azure.com/?l=zh-hans.zh-cn+++
 | Correct Answer Feedback: | 成功！实验室文件已下载到F：\驱动器。 |
 | Incorrect Answer Feedback: | 实验室文件下载失败。请再试一遍。 |
   
+
+  ---
+# French
+
+| Boilerplate | Translation |
+|---|---|
+| ESI Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/Disclaimer |
+| ACP Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/ACP_Disclaimer.md |
+| CloudShellPrepBash | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/prepare%20cloudshell%20(bash).md |
+| CloudShellPrepPowershell | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/prepare%20cloudshell%20(powershell).md |
+| CloudSliceResourceGroup | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/CloudsliceResourceGroupFR.md |
+| CSSHint | not translated yet |
+| MultiLineCodeHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/MultiLineCodeHint.md |
+| Azure Pass | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/Azure%20Pass%20How%20To |
+| ESM_RedirectClipboardHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/FR/ESM_RedirectClipboardHint.md |
+
+---
+**"...Congratulations, you have completed this module, click next to proceed to the next lab..."**
+```
+# Félicitations
+
+Vous avez terminé cet exercice avec succès. Cliquez sur **Suivant** pour accéder au prochain labo.
+```
+---
+**"...Congratulations, you have successfully completed this module, to mark the lab as complete click end..."**
+```
+# Félicitations!
+		
+Vous avez terminé ce labo avec succès. Cliquez sur **Fin** pour afficher le labo comme **Complete**.
+```
+---
+**Replacement to localize azure portal URL**
+```
+[Azure portal](https://portal.azure.com)
+Azure portal +++https://portal.azure.com/?l=fr.fr-fr+++
+```
+
+---
+**DownloadFiles Variations - 'Download To Desktop' version**
+| Field | Translation |
+|---|---|
+| Custom Evaluation Button Text: | Télécharger les fichiers du labo sur le bureau |
+| Correct Answer Feedback: | RÉUSSI ! Les fichiers du labo ont été téléchargés sur le bureau. |
+| Incorrect Answer Feedback: | Le téléchargement des fichiers du labo a échoué. Veuillez réessayer. |
+
+---
+**DownloadFiles Variations - 'Download To F:' version (adjust drive: letter as neccessary)**
+| Field | Translation |
+|---|---|
+| Custom Evaluation Button Text: | Téléchargez les fichiers du labo sur le lecteur F:\ |
+| Correct Answer Feedback: | RÉUSSI ! Les fichiers du labo ont été téléchargés sur le lecteur F:\. |
+| Incorrect Answer Feedback: | Le téléchargement des fichiers du labo a échoué. Veuillez réessayer. |
