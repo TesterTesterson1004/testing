@@ -218,3 +218,57 @@ Azure portal +++https://portal.azure.com/?l=fr.fr-fr+++
 | Custom Evaluation Button Text: | Téléchargez les fichiers du labo sur le lecteur F:\ |
 | Correct Answer Feedback: | RÉUSSI ! Les fichiers du labo ont été téléchargés sur le lecteur F:\. |
 | Incorrect Answer Feedback: | Le téléchargement des fichiers du labo a échoué. Veuillez réessayer. |
+
+	
+	---
+# German
+
+| Boilerplate | Translation |
+|---|---|
+| ESI Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/Disclaimer |
+| ACP Disclaimer | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/ACP_Disclaimer.md |
+| CloudShellPrepBash | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/prepare%20cloudshell%20(bash).md |
+| CloudShellPrepPowershell | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/prepare%20cloudshell%20(powershell).md |
+| CloudSliceResourceGroup | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/CloudsliceResourceGroupDE.md |
+| CSSHint | not translated yet |
+| MultiLineCodeHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/MultiLineCodeHint.md |
+| Azure Pass | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/Azure%20Pass%20How%20To |
+| ESM_RedirectClipboardHint | https<nolink>://raw.githubusercontent.com/LODSContent/ESI/master/Translations/DE/ESM_RedirectClipboardHint.md |
+
+---
+**"...Congratulations, you have completed this module, click next to proceed to the next lab..."**
+```
+# Gratulation! 
+        
+Sie haben diese Übung erfolgreich abgeschlossen. Klicken Sie auf **Weiter**, um zum nächsten Modul fortzufahren.
+```
+---
+**"...Congratulations, you have successfully completed this module, to mark the lab as complete click end..."**
+```
+# Herzlichen Glückwunsch!
+		
+Sie haben dieses Lab erfolgreich abgeschlossen. Klicken Sie auf **Ende**, um das Lab als **Abgeschlossen** zu markieren.
+```
+---
+**Replacement to localize azure portal URL**
+```
+[Azure portal](https://portal.azure.com)
+Azure portal +++https://portal.azure.com/?l=de.de-de+++
+```
+
+---
+**DownloadFiles Variations - 'Download To Desktop' version**
+| Field | Translation |
+|---|---|
+| Custom Evaluation Button Text: | Lab-Dateien auf den Desktop herunterladen |
+| Correct Answer Feedback: | ERFOLG! Die Lab-Dateien wurden auf den Desktop heruntergeladen. |
+| Incorrect Answer Feedback: | Fehler beim Herunterladen der Lab-Dateien. Versuchen Sie es erneut. |
+
+---
+**DownloadFiles Variations - 'Download To F:' version (adjust drive: letter as neccessary)**
+| Field | Translation |
+|---|---|
+| Custom Evaluation Button Text: | Lab-Dateien auf das Laufwerk F:\ herunterladen |
+| Correct Answer Feedback: | ERFOLG! Die Lab-Dateien wurden auf das Laufwerk F:\ heruntergeladen. |
+| Incorrect Answer Feedback: | Fehler beim Herunterladen der Lab-Dateien. Versuchen Sie es erneut. |
+
