@@ -19,10 +19,14 @@
     - Ask a math question.
     - Print environment variables.
 
+===
+
 1. Update app to use sessions.
     - Print environment variables.
     - Ask question about CSV.
 
 1. Deploy app to Azure.  
+
+---
 
 ## This is another page
