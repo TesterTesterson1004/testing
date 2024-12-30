@@ -75,7 +75,7 @@ resource uebaAnalytics 'Microsoft.SecurityInsights/settings@2023-02-01-preview' 
 //Create the user identity to interact with Azure
 @description('The user identity for the deployment script.')
 resource scriptIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: 'script-identity'
+  name: 'script-identity1'
   location: location
 }
 
@@ -98,7 +98,7 @@ resource pauseScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
 
 //Assign the Sentinel Contributor rights on the Resource Group to the User Identity that was just created
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, roleDefinitionId, scriptIdentity.properties.principalId)
+  name: guid(resourceGroup().name, roleDefinitionId)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)
     principalId: scriptIdentity.properties.principalId
