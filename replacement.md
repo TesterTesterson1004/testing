@@ -1,5 +1,7 @@
 1. Open the `Program.cs` file in **Visual Studio Code**. In the editor, replace all the existing code with the code provided below.
 
+    > **Note:** Take a moment to review the code and observe how it prints information about the primary and secondary servers in the auto-failover group.
+
     ```csharp
     using System;
     using Microsoft.Data.SqlClient;
