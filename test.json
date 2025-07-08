@@ -230,7 +230,7 @@
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "sku": {
-                "name": "Basic",
+                "name": "Standard",
                 "tier": "Regional"
             },
             "name": "[variables('publicIPAddressName')]",
