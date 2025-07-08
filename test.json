@@ -153,7 +153,7 @@
                     {
                         "name": "ipconfig1",
                         "properties": {
-                            "privateIPAllocationMethod": "Static",
+                            "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
                             },
@@ -239,7 +239,7 @@
             "tags": {},
             "properties": {
                 "publicIPAddressVersion": "IPv4",
-                "publicIPAllocationMethod": "Static",
+                "publicIPAllocationMethod": "Dynamic",
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
                     "domainNameLabel": "[toLower(concat(variables('smarthotelhostVMname'), '-', substring(uniqueString(resourceGroup().id),0,4)))]"
