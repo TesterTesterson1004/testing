@@ -220,29 +220,35 @@ foreach ($workspaceId in $workspaceIds) {
     Write-Host "  Resource group:  $workspaceResourceGroup"
 
     # --------------------------------------------------------
-    # Extract Databricks managed resource group
+    # Extract Databricks managed resource group (optional).
+    #
+    # Most workspaces report a managedResourceGroupId, but some
+    # lab/sandbox workspaces never get one -- e.g. the workspace
+    # hasn't finished provisioning, or the path used to create it
+    # doesn't spin one up. Treat a missing managedResourceGroupId
+    # as "nothing to wait for", not a fatal error -- an
+    # unparsable one (present but malformed) is still fatal,
+    # since that means something unexpected is going on.
     # --------------------------------------------------------
 
     $managedResourceGroupId = $workspaceResource.properties.managedResourceGroupId
+    $managedResourceGroup = $null
 
     if ([string]::IsNullOrWhiteSpace($managedResourceGroupId)) {
-        Write-Host "ERROR: Workspace does not expose managedResourceGroupId."
-        Write-Host ""
-        Write-Host "Cleanup stopped for safety."
-        return
+        Write-Host "  Managed RG:      (none reported for this workspace)"
     }
-
-    if ($managedResourceGroupId -notmatch "/resourceGroups/([^/]+)$") {
-        Write-Host "ERROR: Unable to determine Databricks managed resource group."
+    elseif ($managedResourceGroupId -notmatch "/resourceGroups/([^/]+)$") {
+        Write-Host "ERROR: Unable to parse Databricks managed resource group."
         Write-Host "  $managedResourceGroupId"
         Write-Host ""
         Write-Host "Cleanup stopped for safety."
         return
     }
+    else {
+        $managedResourceGroup = $Matches[1]
+        Write-Host "  Managed RG:      $managedResourceGroup"
+    }
 
-    $managedResourceGroup = $Matches[1]
-
-    Write-Host "  Managed RG:      $managedResourceGroup"
     Write-Host ""
 
     # --------------------------------------------------------
@@ -256,7 +262,7 @@ foreach ($workspaceId in $workspaceIds) {
         ManagedResourceGroup = $managedResourceGroup
     }
 
-    if ($managedResourceGroups -notcontains $managedResourceGroup) {
+    if ($managedResourceGroup -and ($managedResourceGroups -notcontains $managedResourceGroup)) {
         $managedResourceGroups += $managedResourceGroup
     }
 
@@ -280,7 +286,8 @@ foreach ($workspace in $workspaces) {
     Write-Host "Deleting workspace:"
     Write-Host "  $($workspace.Name)"
     Write-Host "  Resource group: $($workspace.ResourceGroup)"
-    Write-Host "  Managed RG:     $($workspace.ManagedResourceGroup)"
+    $managedRgDisplay = if ($workspace.ManagedResourceGroup) { $workspace.ManagedResourceGroup } else { "(none)" }
+    Write-Host "  Managed RG:     $managedRgDisplay"
     Write-Host ""
 
     # --------------------------------------------------------
