@@ -286,11 +286,14 @@ foreach ($workspace in $workspaces) {
     # --------------------------------------------------------
     # Construct REST DELETE URL.
     #
-    # ${workspace.Id} is intentional. The braces make the
-    # PowerShell variable boundary explicit before "?..."
+    # Uses the $(...) subexpression operator to access the
+    # .Id property. ${workspace.Id} is NOT property access in
+    # PowerShell -- it is literal-variable-name syntax, so it
+    # silently resolves to an empty string and drops the
+    # resource path from the URL.
     # --------------------------------------------------------
 
-    $deleteUrl = "https://management.azure.com${workspace.Id}?api-version=$databricksApiVersion&forceDeletion=true"
+    $deleteUrl = "https://management.azure.com$($workspace.Id)?api-version=$databricksApiVersion&forceDeletion=true"
 
     Write-Host "Submitting workspace deletion..."
 
