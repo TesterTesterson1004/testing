@@ -2,13 +2,12 @@
 # Azure Databricks Lab Cleanup
 #
 # Purpose:
-#   Find Azure Databricks workspaces created/modified by the
-#   current user during the last 4 hours and completely clean
-#   them up.
+#   Find Azure Databricks workspaces associated with the
+#   current user during the last 4 hours and clean them up.
 #
 # Requirements:
 #   - Azure Cloud Shell PowerShell
-#   - Student is signed in as the user who created the workspace
+#   - Student is signed in as the user who created the resources
 #   - No Databricks CLI extension required
 #
 # Behavior:
@@ -17,6 +16,8 @@
 #   - Uses forceDeletion=true
 #   - Waits for Databricks managed resource groups to disappear
 #   - Deletes the containing resource group only if it is empty
+#   - NEVER uses "exit", so it cannot terminate the Cloud Shell
+#     PowerShell session when pasted directly into Cloud Shell
 # ============================================================
 
 $ErrorActionPreference = "Continue"
@@ -47,7 +48,8 @@ $caller = az account show `
 
 if ([string]::IsNullOrWhiteSpace($caller)) {
     Write-Host "ERROR: Unable to determine the current Azure user."
-    exit 1
+    Write-Host "Nothing will be deleted."
+    return
 }
 
 Write-Host "Current user:"
@@ -65,7 +67,8 @@ $subscriptionId = az account show `
 
 if ([string]::IsNullOrWhiteSpace($subscriptionId)) {
     Write-Host "ERROR: Unable to determine the current subscription."
-    exit 1
+    Write-Host "Nothing will be deleted."
+    return
 }
 
 Write-Host "Subscription:"
@@ -91,7 +94,7 @@ $activityLogJson = az monitor activity-log list `
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($activityLogJson)) {
     Write-Host "No Activity Log data was returned."
     Write-Host "Nothing will be deleted."
-    exit 0
+    return
 }
 
 try {
@@ -99,7 +102,8 @@ try {
 }
 catch {
     Write-Host "ERROR: Unable to parse Activity Log data."
-    exit 1
+    Write-Host "Nothing will be deleted."
+    return
 }
 
 Write-Host "Activity Log events returned: $($activityLog.Count)"
@@ -123,7 +127,7 @@ if ($workspaceEvents.Count -eq 0) {
     Write-Host "during the last $activityLogHours hours."
     Write-Host ""
     Write-Host "Nothing will be deleted."
-    exit 0
+    return
 }
 
 # ------------------------------------------------------------
@@ -172,7 +176,7 @@ foreach ($workspaceId in $workspaceIds) {
         Write-Host "  $workspaceId"
         Write-Host ""
         Write-Host "Cleanup stopped for safety."
-        exit 1
+        return
     }
 
     try {
@@ -182,18 +186,18 @@ foreach ($workspaceId in $workspaceIds) {
         Write-Host "ERROR: Unable to parse workspace information."
         Write-Host ""
         Write-Host "Cleanup stopped for safety."
-        exit 1
+        return
     }
 
     # --------------------------------------------------------
-    # Extract workspace resource group
+    # Extract workspace resource group and name
     # --------------------------------------------------------
 
     if ($workspaceResource.id -notmatch "/resourceGroups/([^/]+)/providers/Microsoft\.Databricks/workspaces/([^/]+)$") {
         Write-Host "ERROR: Unable to determine workspace/resource-group information."
         Write-Host ""
         Write-Host "Cleanup stopped for safety."
-        exit 1
+        return
     }
 
     $workspaceResourceGroup = $Matches[1]
@@ -212,7 +216,7 @@ foreach ($workspaceId in $workspaceIds) {
         Write-Host "ERROR: Workspace does not expose managedResourceGroupId."
         Write-Host ""
         Write-Host "Cleanup stopped for safety."
-        exit 1
+        return
     }
 
     if ($managedResourceGroupId -notmatch "/resourceGroups/([^/]+)$") {
@@ -220,7 +224,7 @@ foreach ($workspaceId in $workspaceIds) {
         Write-Host "  $managedResourceGroupId"
         Write-Host ""
         Write-Host "Cleanup stopped for safety."
-        exit 1
+        return
     }
 
     $managedResourceGroup = $Matches[1]
@@ -233,9 +237,9 @@ foreach ($workspaceId in $workspaceIds) {
     # --------------------------------------------------------
 
     $workspaces += [PSCustomObject]@{
-        Id                  = $workspaceId
-        Name                = $workspaceName
-        ResourceGroup       = $workspaceResourceGroup
+        Id                   = $workspaceId
+        Name                 = $workspaceName
+        ResourceGroup        = $workspaceResourceGroup
         ManagedResourceGroup = $managedResourceGroup
     }
 
@@ -269,9 +273,8 @@ foreach ($workspace in $workspaces) {
     # --------------------------------------------------------
     # Construct REST DELETE URL.
     #
-    # ${workspace.Id} is intentional. It prevents PowerShell
-    # from misinterpreting the variable when immediately
-    # followed by the query string.
+    # ${workspace.Id} is intentional. The braces make the
+    # PowerShell variable boundary explicit before "?..."
     # --------------------------------------------------------
 
     $deleteUrl = "https://management.azure.com${workspace.Id}?api-version=$databricksApiVersion&forceDeletion=true"
@@ -290,7 +293,7 @@ foreach ($workspace in $workspaces) {
         Write-Host "  $($workspace.Name)"
         Write-Host ""
         Write-Host "Cleanup stopped."
-        exit 1
+        return
     }
 
     Write-Host "Delete request submitted."
@@ -307,7 +310,7 @@ foreach ($workspace in $workspaces) {
 
     while ($elapsed -lt $waitSeconds) {
 
-        $check = az resource show `
+        az resource show `
             --ids $workspace.Id `
             --only-show-errors `
             -o none 2>$null
@@ -329,7 +332,7 @@ foreach ($workspace in $workspaces) {
         Write-Host "  $($workspace.Name)"
         Write-Host ""
         Write-Host "Cleanup stopped."
-        exit 1
+        return
     }
 
     Write-Host "Workspace deleted."
@@ -358,7 +361,7 @@ foreach ($managedResourceGroup in $managedResourceGroups) {
 
     while ($elapsed -lt $waitSeconds) {
 
-        $rgCheck = az group show `
+        az group show `
             --name $managedResourceGroup `
             --only-show-errors `
             -o none 2>$null
@@ -381,7 +384,7 @@ foreach ($managedResourceGroup in $managedResourceGroups) {
         Write-Host "  $managedResourceGroup"
         Write-Host ""
         Write-Host "Cleanup stopped."
-        exit 1
+        return
     }
 
     Write-Host "Managed resource group removed."
@@ -406,16 +409,25 @@ foreach ($resourceGroup in $containingResourceGroups) {
     Write-Host "Checking resource group:"
     Write-Host "  $resourceGroup"
 
-    $remainingResources = @(
-        az resource list `
-            --resource-group $resourceGroup `
-            --only-show-errors `
-            -o json 2>$null |
-        ConvertFrom-Json
-    )
+    $remainingResourcesJson = az resource list `
+        --resource-group $resourceGroup `
+        --only-show-errors `
+        -o json 2>$null
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Unable to inspect resource group."
+        Write-Host "Skipping: $resourceGroup"
+        Write-Host ""
+        continue
+    }
+
+    try {
+        $remainingResources = @(
+            $remainingResourcesJson | ConvertFrom-Json
+        )
+    }
+    catch {
+        Write-Host "Unable to parse resource list."
         Write-Host "Skipping: $resourceGroup"
         Write-Host ""
         continue
@@ -494,4 +506,6 @@ Write-Host "============================================================"
 Write-Host ""
 Write-Host "Databricks workspaces identified from the current user's"
 Write-Host "Activity Log were processed."
+Write-Host ""
+Write-Host "Cloud Shell session remains active."
 Write-Host ""
