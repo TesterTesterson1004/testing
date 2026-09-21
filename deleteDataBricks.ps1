@@ -2,33 +2,34 @@
 # Azure Databricks Lab Cleanup
 #
 # Purpose:
-#   Clean up Databricks resources created by the current student
-#   during the current lab session.
+#   Find Azure Databricks workspaces associated with the
+#   current user during the last 4 hours and clean them up.
 #
-# Safety:
-#   - Uses the current signed-in user's identity.
-#   - Looks back only 4 hours in the Azure Activity Log.
-#   - Only processes Microsoft.Databricks/workspaces associated
-#     with successful operations by that user.
-#   - Does NOT blindly delete subscription-wide Databricks
-#     resources or resource groups.
-#   - Resource groups are deleted only when empty.
-#   - No confirmation prompts.
+# Requirements:
+#   - Azure Cloud Shell PowerShell
+#   - Student is signed in as the user who created the resources
+#   - No Databricks CLI extension required
 #
-# Intended for:
-#   Azure Cloud Shell - PowerShell
+# Behavior:
+#   - No confirmation prompts
+#   - Deletes Databricks workspaces sequentially
+#   - Uses forceDeletion=true
+#   - Waits for Databricks managed resource groups to disappear
+#   - Deletes the containing resource group only if it is empty
+#   - NEVER uses "exit", so it cannot terminate the Cloud Shell
+#     PowerShell session when pasted directly into Cloud Shell
 # ============================================================
 
 $ErrorActionPreference = "Continue"
 
 # ------------------------------------------------------------
-# Settings
+# Configuration
 # ------------------------------------------------------------
 
 $activityLogHours = 4
-$workspaceDeleteTimeoutSeconds = 1800
-$managedRGTimeoutSeconds = 1800
-$resourceGroupDeleteTimeoutSeconds = 1800
+$waitSeconds = 1800
+$pollSeconds = 15
+$databricksApiVersion = "2026-01-01"
 
 Write-Host ""
 Write-Host "============================================================"
@@ -37,79 +38,51 @@ Write-Host "============================================================"
 Write-Host ""
 
 # ------------------------------------------------------------
-# 1. Ensure the Databricks Azure CLI extension is installed
-#
-#    This prevents Azure CLI from displaying:
-#
-#    "The command requires the extension databricks.
-#     Do you want to install it now? (Y/n)"
-#
-#    --yes forces non-interactive installation.
-#
-#    The extension check uses --query and -o tsv so that the
-#    entire extension JSON manifest is NOT printed.
+# Get current Azure account
 # ------------------------------------------------------------
-
-Write-Host "Checking Azure CLI Databricks extension..."
-
-$extensionInstalled = az extension show `
-    --name databricks `
-    --query name `
-    -o tsv `
-    --only-show-errors `
-    2>$null
-
-if ($LASTEXITCODE -ne 0 -or $extensionInstalled -ne "databricks") {
-
-    Write-Host "Databricks extension not installed."
-    Write-Host "Installing Databricks extension..."
-
-    az extension add `
-        --name databricks `
-        --yes `
-        --only-show-errors `
-        -o none
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
-        Write-Host "ERROR: Unable to install the Azure CLI Databricks extension."
-        exit 1
-    }
-
-    Write-Host "Databricks extension installed."
-}
-else {
-    Write-Host "Databricks extension is already installed."
-}
-
-Write-Host ""
-
-# ------------------------------------------------------------
-# 2. Determine the current Azure user
-# ------------------------------------------------------------
-
-Write-Host "Determining current Azure user..."
 
 $caller = az account show `
     --query user.name `
     -o tsv `
-    --only-show-errors `
-    2>$null
+    --only-show-errors 2>$null
 
-if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($caller)) {
+if ([string]::IsNullOrWhiteSpace($caller)) {
     Write-Host "ERROR: Unable to determine the current Azure user."
-    exit 1
+    Write-Host "Nothing will be deleted."
+    return
 }
 
-Write-Host "Current user: $caller"
-Write-Host "Activity Log lookback: $activityLogHours hours"
+Write-Host "Current user:"
+Write-Host "  $caller"
 Write-Host ""
 
 # ------------------------------------------------------------
-# 3. Retrieve recent Activity Log entries for this user
+# Get current subscription
 # ------------------------------------------------------------
 
-Write-Host "Checking Azure Activity Log for Databricks workspace operations..."
+$subscriptionId = az account show `
+    --query id `
+    -o tsv `
+    --only-show-errors 2>$null
+
+if ([string]::IsNullOrWhiteSpace($subscriptionId)) {
+    Write-Host "ERROR: Unable to determine the current subscription."
+    Write-Host "Nothing will be deleted."
+    return
+}
+
+Write-Host "Subscription:"
+Write-Host "  $subscriptionId"
+Write-Host ""
+
+# ------------------------------------------------------------
+# Find recent Azure Activity Log events for this user
+# ------------------------------------------------------------
+
+Write-Host "Searching Azure Activity Log..."
+Write-Host "  Caller:  $caller"
+Write-Host "  Window:  last $activityLogHours hours"
+Write-Host ""
 
 $activityLogJson = az monitor activity-log list `
     --caller $caller `
@@ -119,247 +92,246 @@ $activityLogJson = az monitor activity-log list `
     -o json 2>$null
 
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($activityLogJson)) {
-    Write-Host "ERROR: Unable to retrieve the Azure Activity Log."
-    exit 1
+    Write-Host "No Activity Log data was returned."
+    Write-Host "Nothing will be deleted."
+    return
 }
 
 try {
-    $activityEvents = $activityLogJson | ConvertFrom-Json
+    $activityLog = $activityLogJson | ConvertFrom-Json
 }
 catch {
-    Write-Host "ERROR: Unable to parse Azure Activity Log results."
-    exit 1
+    Write-Host "ERROR: Unable to parse Activity Log data."
+    Write-Host "Nothing will be deleted."
+    return
 }
 
-# ------------------------------------------------------------
-# 4. Find successful Databricks workspace write operations
-#
-#    Microsoft.Databricks/workspaces/write covers creation and
-#    modification of a workspace. In a disposable lab, the
-#    combination of:
-#
-#       - current student's identity
-#       - recent 4-hour window
-#       - Databricks workspace resource
-#
-#    is used to identify the lab-created workspace.
-# ------------------------------------------------------------
-
-$workspaceIds = @()
-
-foreach ($event in $activityEvents) {
-
-    $operationName = [string]$event.operationName.value
-    $resourceId    = [string]$event.resourceId
-    $status        = [string]$event.status.value
-
-    if (
-        $operationName -eq "Microsoft.Databricks/workspaces/write" -and
-        $status -eq "Succeeded" -and
-        $resourceId -match "/providers/Microsoft\.Databricks/workspaces/[^/]+$"
-    ) {
-        $workspaceIds += $resourceId
-    }
-}
-
-$workspaceIds = $workspaceIds |
-    Sort-Object -Unique
-
-if ($workspaceIds.Count -eq 0) {
-    Write-Host "No Databricks workspaces created or modified by $caller"
-    Write-Host "within the last $activityLogHours hours."
-    Write-Host ""
-    Write-Host "Nothing to clean up."
-    exit 0
-}
-
-Write-Host "Found $($workspaceIds.Count) Databricks workspace candidate(s)."
+Write-Host "Activity Log events returned: $($activityLog.Count)"
 Write-Host ""
 
 # ------------------------------------------------------------
-# Arrays used to track cleanup
+# Find Databricks workspace WRITE operations for this user.
+#
+# Databricks workspace creation in the lab may produce:
+#
+#   Started
+#   Accepted
+#   Succeeded
+#
+# We accept any of those states.
+#
+# IMPORTANT:
+#   We intentionally do NOT use "read" operations for discovery.
+#   A read only proves that the user accessed the workspace; it
+#   does not establish that the user created/modified it.
 # ------------------------------------------------------------
 
-$workspaceRecords = @()
+$workspaceEvents = @(
+    $activityLog |
+    Where-Object {
+        $_.operationName.value -eq "Microsoft.Databricks/workspaces/write" -and
+        $_.status.value -in @("Started", "Accepted", "Succeeded") -and
+        $_.resourceId -match "/providers/Microsoft\.Databricks/workspaces/"
+    }
+)
+
+if ($workspaceEvents.Count -eq 0) {
+    Write-Host "No Databricks workspace write activity was found for this user"
+    Write-Host "during the last $activityLogHours hours."
+    Write-Host ""
+    Write-Host "Nothing will be deleted."
+    return
+}
+
+# ------------------------------------------------------------
+# Get unique workspace IDs
+# ------------------------------------------------------------
+
+$workspaceIds = @(
+    $workspaceEvents |
+    Select-Object -ExpandProperty resourceId -Unique
+)
+
+Write-Host "Databricks workspaces identified: $($workspaceIds.Count)"
+Write-Host ""
+
+foreach ($id in $workspaceIds) {
+    Write-Host "  $id"
+}
+
+Write-Host ""
+
+# ------------------------------------------------------------
+# Build workspace information
+# ------------------------------------------------------------
+
+$workspaces = @()
 $managedResourceGroups = @()
 $containingResourceGroups = @()
 
-# ------------------------------------------------------------
-# 5. Resolve each workspace and its resource groups
-#
-#    The ARM resource returned by "az resource show" already
-#    contains properties.managedResourceGroupId.
-#
-#    This avoids the slower:
-#
-#       az databricks workspace show
-#
-#    call to the Databricks control plane.
-# ------------------------------------------------------------
-
 foreach ($workspaceId in $workspaceIds) {
 
+    Write-Host "------------------------------------------------------------"
     Write-Host "Inspecting workspace:"
     Write-Host "  $workspaceId"
 
-    # Get the actual ARM resource.
-    $workspaceJson = az resource show `
+    # --------------------------------------------------------
+    # Retrieve workspace directly through ARM
+    # --------------------------------------------------------
+
+    $workspaceResourceJson = az resource show `
         --ids $workspaceId `
         --only-show-errors `
         -o json 2>$null
 
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($workspaceJson)) {
-        Write-Host "  Workspace no longer exists. Skipping."
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($workspaceResourceJson)) {
+        Write-Host "ERROR: Unable to retrieve workspace:"
+        Write-Host "  $workspaceId"
         Write-Host ""
-        continue
+        Write-Host "Cleanup stopped for safety."
+        return
     }
 
     try {
-        $workspaceResource = $workspaceJson | ConvertFrom-Json
+        $workspaceResource = $workspaceResourceJson | ConvertFrom-Json
     }
     catch {
-        Write-Host "  ERROR: Unable to parse workspace information."
-        exit 1
-    }
-
-    # Make sure this really is a Databricks workspace.
-    if ($workspaceResource.type -ne "Microsoft.Databricks/workspaces") {
-        Write-Host "  Resource type is not a Databricks workspace. Skipping."
+        Write-Host "ERROR: Unable to parse workspace information."
         Write-Host ""
-        continue
+        Write-Host "Cleanup stopped for safety."
+        return
     }
 
-    $workspaceName = $workspaceResource.name
-    $resourceGroup = $workspaceResource.resourceGroup
-    $location      = $workspaceResource.location
+    # --------------------------------------------------------
+    # Extract workspace resource group and name
+    # --------------------------------------------------------
 
-    if ([string]::IsNullOrWhiteSpace($resourceGroup)) {
-        Write-Host "  ERROR: Unable to determine containing resource group."
-        exit 1
+    if ($workspaceResource.id -notmatch "/resourceGroups/([^/]+)/providers/Microsoft\.Databricks/workspaces/([^/]+)$") {
+        Write-Host "ERROR: Unable to determine workspace/resource-group information."
+        Write-Host ""
+        Write-Host "Cleanup stopped for safety."
+        return
     }
+
+    $workspaceResourceGroup = $Matches[1]
+    $workspaceName = $Matches[2]
 
     Write-Host "  Workspace:       $workspaceName"
-    Write-Host "  Resource group:  $resourceGroup"
-    Write-Host "  Location:        $location"
+    Write-Host "  Resource group:  $workspaceResourceGroup"
 
     # --------------------------------------------------------
-    # Get managed RG directly from ARM resource properties.
+    # Extract Databricks managed resource group (optional).
+    #
+    # Most workspaces report a managedResourceGroupId, but some
+    # lab/sandbox workspaces never get one -- e.g. the workspace
+    # hasn't finished provisioning, or the path used to create it
+    # doesn't spin one up. Treat a missing managedResourceGroupId
+    # as "nothing to wait for", not a fatal error -- an
+    # unparsable one (present but malformed) is still fatal,
+    # since that means something unexpected is going on.
     # --------------------------------------------------------
 
-    $managedRG = $null
-    $managedRGName = $null
+    $managedResourceGroupId = $workspaceResource.properties.managedResourceGroupId
+    $managedResourceGroup = $null
 
-    if ($workspaceResource.properties) {
-        $managedRG = [string]$workspaceResource.properties.managedResourceGroupId
+    if ([string]::IsNullOrWhiteSpace($managedResourceGroupId)) {
+        Write-Host "  Managed RG:      (none reported for this workspace)"
     }
-
-    if ([string]::IsNullOrWhiteSpace($managedRG)) {
-        Write-Host "  WARNING: No managed resource group reported."
+    elseif ($managedResourceGroupId -notmatch "/resourceGroups/([^/]+)$") {
+        Write-Host "ERROR: Unable to parse Databricks managed resource group."
+        Write-Host "  $managedResourceGroupId"
+        Write-Host ""
+        Write-Host "Cleanup stopped for safety."
+        return
     }
     else {
-
-        # Extract just the resource group name from the resource ID.
-        if ($managedRG -match "/resourceGroups/([^/]+)") {
-
-            $managedRGName = $matches[1]
-
-            Write-Host "  Managed RG:      $managedRGName"
-
-            $managedResourceGroups += $managedRGName
-        }
-        else {
-            Write-Host "  ERROR: Unable to parse managed resource group:"
-            Write-Host "         $managedRG"
-            exit 1
-        }
-    }
-
-    $containingResourceGroups += $resourceGroup
-
-    $workspaceRecords += [PSCustomObject]@{
-        Id            = $workspaceId
-        Name          = $workspaceName
-        ResourceGroup = $resourceGroup
-        ManagedRG     = $managedRGName
+        $managedResourceGroup = $Matches[1]
+        Write-Host "  Managed RG:      $managedResourceGroup"
     }
 
     Write-Host ""
-}
 
-# Remove duplicates.
-$managedResourceGroups = $managedResourceGroups |
-    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-    Sort-Object -Unique
+    # --------------------------------------------------------
+    # Save information
+    # --------------------------------------------------------
 
-$containingResourceGroups = $containingResourceGroups |
-    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-    Sort-Object -Unique
+    $workspaces += [PSCustomObject]@{
+        Id                   = $workspaceId
+        Name                 = $workspaceName
+        ResourceGroup        = $workspaceResourceGroup
+        ManagedResourceGroup = $managedResourceGroup
+    }
 
-if ($workspaceRecords.Count -eq 0) {
-    Write-Host "No existing Databricks workspaces require cleanup."
-    exit 0
-}
+    if ($managedResourceGroup -and ($managedResourceGroups -notcontains $managedResourceGroup)) {
+        $managedResourceGroups += $managedResourceGroup
+    }
 
-Write-Host "============================================================"
-Write-Host " Workspaces to delete"
-Write-Host "============================================================"
-
-foreach ($workspace in $workspaceRecords) {
-
-    Write-Host "  $($workspace.Name)"
-    Write-Host "    Resource group: $($workspace.ResourceGroup)"
-
-    if ($workspace.ManagedRG) {
-        Write-Host "    Managed RG:     $($workspace.ManagedRG)"
+    if ($containingResourceGroups -notcontains $workspaceResourceGroup) {
+        $containingResourceGroups += $workspaceResourceGroup
     }
 }
 
-Write-Host ""
-
 # ------------------------------------------------------------
-# 6. Delete Databricks workspaces sequentially
+# Delete workspaces sequentially
 # ------------------------------------------------------------
 
+Write-Host ""
 Write-Host "============================================================"
-Write-Host " Deleting Databricks workspaces"
+Write-Host " Deleting Databricks Workspaces"
 Write-Host "============================================================"
 Write-Host ""
 
-foreach ($workspace in $workspaceRecords) {
+foreach ($workspace in $workspaces) {
 
-    Write-Host "Deleting workspace: $($workspace.Name)"
+    Write-Host "Deleting workspace:"
+    Write-Host "  $($workspace.Name)"
     Write-Host "  Resource group: $($workspace.ResourceGroup)"
+    $managedRgDisplay = if ($workspace.ManagedResourceGroup) { $workspace.ManagedResourceGroup } else { "(none)" }
+    Write-Host "  Managed RG:     $managedRgDisplay"
+    Write-Host ""
 
-    az databricks workspace delete `
-        --resource-group $workspace.ResourceGroup `
-        --name $workspace.Name `
-        --force-deletion true `
-        --yes `
+    # --------------------------------------------------------
+    # Construct REST DELETE URL.
+    #
+    # Uses the $(...) subexpression operator to access the
+    # .Id property. ${workspace.Id} is NOT property access in
+    # PowerShell -- it is literal-variable-name syntax, so it
+    # silently resolves to an empty string and drops the
+    # resource path from the URL.
+    # --------------------------------------------------------
+
+    $deleteUrl = "https://management.azure.com$($workspace.Id)?api-version=$databricksApiVersion&forceDeletion=true"
+
+    Write-Host "Submitting workspace deletion..."
+
+    az rest `
+        --method delete `
+        --url $deleteUrl `
         --only-show-errors `
-        -o none
+        -o none 2>$null
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
         Write-Host "ERROR: Workspace deletion failed:"
         Write-Host "  $($workspace.Name)"
         Write-Host ""
-        Write-Host "Cleanup stopped. No containing resource groups will be deleted."
-        exit 1
+        Write-Host "Cleanup stopped."
+        return
     }
 
-    Write-Host "  Delete request submitted."
+    Write-Host "Delete request submitted."
+    Write-Host ""
 
     # --------------------------------------------------------
-    # Wait for workspace itself to disappear.
+    # Wait for workspace to disappear
     # --------------------------------------------------------
 
+    Write-Host "Waiting for workspace to disappear..."
+
+    $workspaceDeleted = $false
     $elapsed = 0
-    $workspaceGone = $false
 
-    while ($elapsed -lt $workspaceDeleteTimeoutSeconds) {
-
-        Start-Sleep -Seconds 10
-        $elapsed += 10
+    while ($elapsed -lt $waitSeconds) {
 
         az resource show `
             --ids $workspace.Id `
@@ -367,143 +339,126 @@ foreach ($workspace in $workspaceRecords) {
             -o none 2>$null
 
         if ($LASTEXITCODE -ne 0) {
-            $workspaceGone = $true
+            $workspaceDeleted = $true
             break
         }
 
-        Write-Host "  Waiting for workspace deletion... $elapsed seconds"
+        Start-Sleep -Seconds $pollSeconds
+        $elapsed += $pollSeconds
+
+        Write-Host "  Still deleting... ($elapsed seconds)"
     }
 
-    if (-not $workspaceGone) {
+    if (-not $workspaceDeleted) {
         Write-Host ""
-        Write-Host "ERROR: Workspace did not disappear within"
-        Write-Host "$workspaceDeleteTimeoutSeconds seconds:"
+        Write-Host "ERROR: Workspace did not disappear within $waitSeconds seconds."
         Write-Host "  $($workspace.Name)"
         Write-Host ""
-        Write-Host "Cleanup stopped. No containing resource groups will be deleted."
-        exit 1
+        Write-Host "Cleanup stopped."
+        return
     }
 
-    Write-Host "  Workspace deleted."
+    Write-Host "Workspace deleted."
     Write-Host ""
 }
 
 # ------------------------------------------------------------
-# 7. Wait for Databricks-managed resource groups
+# Wait for Databricks managed resource groups
 #
-#    Databricks normally removes its managed RG as part of
-#    workspace deletion. Do not manually delete a managed RG
-#    while Databricks is still processing the workspace removal.
-# ------------------------------------------------------------
-
-if ($managedResourceGroups.Count -gt 0) {
-
-    Write-Host "============================================================"
-    Write-Host " Waiting for Databricks managed resource groups"
-    Write-Host "============================================================"
-    Write-Host ""
-
-    foreach ($managedRG in $managedResourceGroups) {
-
-        Write-Host "Waiting for managed resource group to disappear:"
-        Write-Host "  $managedRG"
-
-        $elapsed = 0
-        $managedRGGone = $false
-
-        while ($elapsed -lt $managedRGTimeoutSeconds) {
-
-            az group show `
-                --name $managedRG `
-                --only-show-errors `
-                -o none 2>$null
-
-            if ($LASTEXITCODE -ne 0) {
-                $managedRGGone = $true
-                break
-            }
-
-            Start-Sleep -Seconds 10
-            $elapsed += 10
-
-            Write-Host "  Still present... $elapsed seconds"
-        }
-
-        if (-not $managedRGGone) {
-            Write-Host ""
-            Write-Host "ERROR: Managed resource group did not disappear"
-            Write-Host "within $managedRGTimeoutSeconds seconds:"
-            Write-Host "  $managedRG"
-            Write-Host ""
-            Write-Host "Containing resource groups will NOT be deleted."
-            exit 1
-        }
-
-        Write-Host "  Managed resource group is gone."
-        Write-Host ""
-    }
-}
-
-# ------------------------------------------------------------
-# 8. Check containing resource groups
-#
-#    Only delete a containing RG if it is empty.
-#
-#    This prevents the cleanup script from destroying unrelated
-#    lab resources that happen to share the same RG.
+# Do NOT manually delete these. forceDeletion=true requests
+# that Databricks remove them as part of workspace deletion.
 # ------------------------------------------------------------
 
 Write-Host "============================================================"
-Write-Host " Checking containing resource groups"
+Write-Host " Waiting for Databricks Managed Resource Groups"
+Write-Host "============================================================"
+Write-Host ""
+
+foreach ($managedResourceGroup in $managedResourceGroups) {
+
+    Write-Host "Managed resource group:"
+    Write-Host "  $managedResourceGroup"
+
+    $managedRgDeleted = $false
+    $elapsed = 0
+
+    while ($elapsed -lt $waitSeconds) {
+
+        az group show `
+            --name $managedResourceGroup `
+            --only-show-errors `
+            -o none 2>$null
+
+        if ($LASTEXITCODE -ne 0) {
+            $managedRgDeleted = $true
+            break
+        }
+
+        Start-Sleep -Seconds $pollSeconds
+        $elapsed += $pollSeconds
+
+        Write-Host "  Still present... ($elapsed seconds)"
+    }
+
+    if (-not $managedRgDeleted) {
+        Write-Host ""
+        Write-Host "ERROR: Databricks managed resource group did not disappear"
+        Write-Host "within $waitSeconds seconds:"
+        Write-Host "  $managedResourceGroup"
+        Write-Host ""
+        Write-Host "Cleanup stopped."
+        return
+    }
+
+    Write-Host "Managed resource group removed."
+    Write-Host ""
+}
+
+# ------------------------------------------------------------
+# Clean up containing resource groups
+#
+# Only delete a containing RG if it is completely empty.
+# ------------------------------------------------------------
+
+Write-Host "============================================================"
+Write-Host " Cleaning Containing Resource Groups"
 Write-Host "============================================================"
 Write-Host ""
 
 foreach ($resourceGroup in $containingResourceGroups) {
 
-    Write-Host "Checking resource group: $resourceGroup"
+    Write-Host "Checking resource group:"
+    Write-Host "  $resourceGroup"
 
-    az group show `
-        --name $resourceGroup `
-        --only-show-errors `
-        -o none 2>$null
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "  Resource group is already gone."
-        Write-Host ""
-        continue
-    }
-
-    # Get remaining resources in the containing RG.
-    $remainingResources = az resource list `
+    $remainingResourcesJson = az resource list `
         --resource-group $resourceGroup `
         --only-show-errors `
         -o json 2>$null
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "  ERROR: Unable to inspect resource group."
-        Write-Host "  Resource group will NOT be deleted."
+        Write-Host "Unable to inspect resource group."
+        Write-Host "Skipping: $resourceGroup"
         Write-Host ""
         continue
     }
 
     try {
-        $remaining = $remainingResources | ConvertFrom-Json
+        $remainingResources = @(
+            $remainingResourcesJson | ConvertFrom-Json
+        )
     }
     catch {
-        Write-Host "  ERROR: Unable to parse remaining resources."
-        Write-Host "  Resource group will NOT be deleted."
+        Write-Host "Unable to parse resource list."
+        Write-Host "Skipping: $resourceGroup"
         Write-Host ""
         continue
     }
 
-    if ($null -eq $remaining) {
-        $remaining = @()
-    }
+    if ($remainingResources.Count -eq 0) {
 
-    if ($remaining.Count -eq 0) {
-
-        Write-Host "  Resource group is empty."
-        Write-Host "  Deleting: $resourceGroup"
+        Write-Host "Resource group is empty."
+        Write-Host "Deleting: $resourceGroup"
+        Write-Host ""
 
         az group delete `
             --name $resourceGroup `
@@ -512,21 +467,20 @@ foreach ($resourceGroup in $containingResourceGroups) {
             --only-show-errors
 
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "  ERROR: Resource group deletion request failed."
+            Write-Host "WARNING: Resource group deletion request failed:"
+            Write-Host "  $resourceGroup"
             Write-Host ""
             continue
         }
 
-        Write-Host "  Delete request submitted."
-
         # ----------------------------------------------------
-        # Wait for the resource group to disappear.
+        # Wait for resource group deletion
         # ----------------------------------------------------
 
+        $rgDeleted = $false
         $elapsed = 0
-        $resourceGroupGone = $false
 
-        while ($elapsed -lt $resourceGroupDeleteTimeoutSeconds) {
+        while ($elapsed -lt $waitSeconds) {
 
             az group show `
                 --name $resourceGroup `
@@ -534,46 +488,45 @@ foreach ($resourceGroup in $containingResourceGroups) {
                 -o none 2>$null
 
             if ($LASTEXITCODE -ne 0) {
-                $resourceGroupGone = $true
+                $rgDeleted = $true
                 break
             }
 
-            Start-Sleep -Seconds 10
-            $elapsed += 10
+            Start-Sleep -Seconds $pollSeconds
+            $elapsed += $pollSeconds
 
-            Write-Host "  Waiting for resource group deletion... $elapsed seconds"
+            Write-Host "  Still deleting... ($elapsed seconds)"
         }
 
-        if ($resourceGroupGone) {
-            Write-Host "  Resource group deleted."
+        if ($rgDeleted) {
+            Write-Host "Resource group deleted."
         }
         else {
-            Write-Host "  WARNING: Resource group is still present after"
-            Write-Host "  $resourceGroupDeleteTimeoutSeconds seconds."
+            Write-Host "WARNING: Resource group deletion is still in progress."
+            Write-Host "  $resourceGroup"
         }
 
     }
     else {
 
-        Write-Host "  Resource group contains $($remaining.Count) resource(s)."
-        Write-Host "  Leaving it intact."
-
-        foreach ($resource in $remaining) {
-            Write-Host "    $($resource.type) / $($resource.name)"
-        }
+        Write-Host "Resource group is NOT empty."
+        Write-Host "It will NOT be deleted."
+        Write-Host "Remaining resources: $($remainingResources.Count)"
     }
 
     Write-Host ""
 }
 
 # ------------------------------------------------------------
-# 9. Complete
+# Complete
 # ------------------------------------------------------------
 
 Write-Host "============================================================"
-Write-Host " Cleanup complete"
+Write-Host " Cleanup Complete"
 Write-Host "============================================================"
 Write-Host ""
-Write-Host "Databricks workspaces associated with the current user"
-Write-Host "during the last $activityLogHours hours have been processed."
+Write-Host "Databricks workspaces identified from the current user's"
+Write-Host "Activity Log were processed."
+Write-Host ""
+Write-Host "Cloud Shell session remains active."
 Write-Host ""
