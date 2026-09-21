@@ -45,16 +45,21 @@ Write-Host ""
 #     Do you want to install it now? (Y/n)"
 #
 #    --yes forces non-interactive installation.
+#
+#    The extension check uses --query and -o tsv so that the
+#    entire extension JSON manifest is NOT printed.
 # ------------------------------------------------------------
 
 Write-Host "Checking Azure CLI Databricks extension..."
 
-az extension show `
+$extensionInstalled = az extension show `
     --name databricks `
+    --query name `
+    -o tsv `
     --only-show-errors `
     2>$null
 
-if ($LASTEXITCODE -ne 0) {
+if ($LASTEXITCODE -ne 0 -or $extensionInstalled -ne "databricks") {
 
     Write-Host "Databricks extension not installed."
     Write-Host "Installing Databricks extension..."
@@ -62,7 +67,8 @@ if ($LASTEXITCODE -ne 0) {
     az extension add `
         --name databricks `
         --yes `
-        --only-show-errors
+        --only-show-errors `
+        -o none
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
@@ -87,7 +93,8 @@ Write-Host "Determining current Azure user..."
 $caller = az account show `
     --query user.name `
     -o tsv `
-    --only-show-errors 2>$null
+    --only-show-errors `
+    2>$null
 
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($caller)) {
     Write-Host "ERROR: Unable to determine the current Azure user."
@@ -328,7 +335,8 @@ foreach ($workspace in $workspaceRecords) {
         --name $workspace.Name `
         --force-deletion true `
         --yes `
-        --only-show-errors
+        --only-show-errors `
+        -o none
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
