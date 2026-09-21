@@ -110,20 +110,33 @@ Write-Host "Activity Log events returned: $($activityLog.Count)"
 Write-Host ""
 
 # ------------------------------------------------------------
-# Find successful Databricks workspace write operations
+# Find Databricks workspace WRITE operations for this user.
+#
+# Databricks workspace creation in the lab may produce:
+#
+#   Started
+#   Accepted
+#   Succeeded
+#
+# We accept any of those states.
+#
+# IMPORTANT:
+#   We intentionally do NOT use "read" operations for discovery.
+#   A read only proves that the user accessed the workspace; it
+#   does not establish that the user created/modified it.
 # ------------------------------------------------------------
 
 $workspaceEvents = @(
     $activityLog |
     Where-Object {
         $_.operationName.value -eq "Microsoft.Databricks/workspaces/write" -and
-        $_.status.value -eq "Succeeded" -and
+        $_.status.value -in @("Started", "Accepted", "Succeeded") -and
         $_.resourceId -match "/providers/Microsoft\.Databricks/workspaces/"
     }
 )
 
 if ($workspaceEvents.Count -eq 0) {
-    Write-Host "No Databricks workspace activity was found for this user"
+    Write-Host "No Databricks workspace write activity was found for this user"
     Write-Host "during the last $activityLogHours hours."
     Write-Host ""
     Write-Host "Nothing will be deleted."
@@ -395,8 +408,6 @@ foreach ($managedResourceGroup in $managedResourceGroups) {
 # Clean up containing resource groups
 #
 # Only delete a containing RG if it is completely empty.
-# This prevents the cleanup script from deleting unrelated
-# lab resources that may exist in the same RG.
 # ------------------------------------------------------------
 
 Write-Host "============================================================"
